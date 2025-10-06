@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>UTM Guard</title>
+    <style>
+      body { font-family: sans-serif; margin: 16px; width: 280px; }
+      button { border-radius: 12px; border: 1px solid #e2e8f0; padding: 8px 12px; }
+    </style>
+  </head>
+  <body>
+    <h1>Apply template</h1>
+    <p>Send the active URL to the workspace builder.</p>
+    <button id="send">Open builder</button>
+    <script>
+      document.getElementById("send").addEventListener("click", async () => {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (!tab?.url) return;
+        await chrome.tabs.create({ url: `http://localhost:3000/builder?url=${encodeURIComponent(tab.url)}` });
+      });
+    </script>
+  </body>
+</html>
