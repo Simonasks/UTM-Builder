@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "UTM Guard",
+  "version": "0.1.0",
+  "description": "Detect bare URLs and prompt to apply approved templates.",
+  "permissions": ["activeTab", "storage"],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

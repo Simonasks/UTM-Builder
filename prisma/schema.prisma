@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id           String            @id @default(cuid())
+  name         String
+  domains      String[]
+  workspaces   Workspace[]
+  users        OrganizationUser[]
+  rules        Rule[]
+  templates    Template[]
+  createdAt    DateTime          @default(now())
+}
+
+model Workspace {
+  id             String           @id @default(cuid())
+  name           String
+  organization   Organization     @relation(fields: [organizationId], references: [id])
+  organizationId String
+  projects       Project[]
+  links          Link[]
+  templates      Template[]
+  rules          Rule[]
+  members        WorkspaceUser[]
+}
+
+model Project {
+  id          String     @id @default(cuid())
+  name        String
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id])
+  workspaceId String
+  campaigns   Campaign[]
+}
+
+model Campaign {
+  id          String    @id @default(cuid())
+  name        String
+  start       DateTime?
+  end         DateTime?
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  workspaceId String
+  project     Project?  @relation(fields: [projectId], references: [id])
+  projectId   String?
+  links       Link[]
+  notes       Json?
+}
+
+model Link {
+  id          String    @id @default(cuid())
+  baseUrl     String
+  params      Json
+  finalUrl    String
+  shortCode   String?   @unique
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  workspaceId String
+  campaign    Campaign? @relation(fields: [campaignId], references: [id])
+  campaignId  String?
+  createdBy   String
+  violations  Json?
+  clicks      Int       @default(0)
+  createdAt   DateTime  @default(now())
+}
+
+model Template {
+  id              String    @id @default(cuid())
+  scope           String
+  name            String
+  schema          Json
+  version         Int       @default(1)
+  approved        Boolean   @default(false)
+  workspace       Workspace? @relation(fields: [workspaceId], references: [id])
+  workspaceId     String?
+  organization    Organization? @relation(fields: [organizationId], references: [id])
+  organizationId  String?
+  createdBy       String
+  updatedAt       DateTime  @updatedAt
+}
+
+model Rule {
+  id             String    @id @default(cuid())
+  scope          String
+  name           String
+  definition     Json
+  workspace      Workspace? @relation(fields: [workspaceId], references: [id])
+  workspaceId    String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  organizationId String?
+  enabled        Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+}
+
+model AuditEvent {
+  id        String   @id @default(cuid())
+  actorId   String
+  entity    String
+  entityId  String
+  action    String
+  meta      Json
+  createdAt DateTime @default(now())
+}
+
+model User {
+  id            String              @id @default(cuid())
+  email         String              @unique
+  name          String?
+  image         String?
+  organizations OrganizationUser[]
+  workspaces    WorkspaceUser[]
+}
+
+model OrganizationUser {
+  id             String        @id @default(cuid())
+  organization   Organization  @relation(fields: [organizationId], references: [id])
+  organizationId String
+  user           User          @relation(fields: [userId], references: [id])
+  userId         String
+  role           String
+}
+
+model WorkspaceUser {
+  id          String     @id @default(cuid())
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id])
+  workspaceId String
+  user        User       @relation(fields: [userId], references: [id])
+  userId      String
+  role        String
+}
